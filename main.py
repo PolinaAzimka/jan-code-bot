@@ -1,43 +1,43 @@
 import logging
-import requests
 from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, filters, ContextTypes
-
-API_URL = "https://api.ocr.space/parse/image"
-OCR_SPACE_API_KEY = "K83263040588957"  # Ключ пользователя
+import requests
+from bs4 import BeautifulSoup
 
 logging.basicConfig(level=logging.INFO)
-BOT_TOKEN = "7587391633:AAHyIMZ5VKOTQBfUjyENBgQ99xX7mQf94bY"
+BOT_TOKEN = "ВАШ_ТОКЕН_ЗДЕСЬ"
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Фото получено! Распознаю текст...")
+    await update.message.reply_text("Фото получено! Ищу JAN-код...")
 
     photo_file = await update.message.photo[-1].get_file()
     photo_bytes = await photo_file.download_as_bytearray()
 
-    response = requests.post(
-        API_URL,
-        files={"file": photo_bytes},
-        data={
-            "apikey": OCR_SPACE_API_KEY,
-            "language": "jpn",
-            "isOverlayRequired": False
-        },
-    )
+    files = {'encoded_image': ('image.jpg', photo_bytes), 'image_content': ''}
+    params = {'hl': 'ja'}
+    search_url = "https://www.google.com/searchbyimage/upload"
+    response = requests.post(search_url, files=files, params=params, allow_redirects=False)
 
-    try:
-        result = response.json()
-        parsed_results = result.get("ParsedResults")
-        if parsed_results:
-            parsed_text = parsed_results[0].get("ParsedText", "").strip()
-            if parsed_text:
-                await update.message.reply_text(f"Распознанный текст:\n{parsed_text}")
-            else:
-                await update.message.reply_text("Не удалось распознать текст.")
-        else:
-            await update.message.reply_text("Ошибка при распознавании: нет результата.")
-    except Exception as e:
-        await update.message.reply_text(f"Ошибка при распознавании: {str(e)}")
+    if 'Location' not in response.headers:
+        await update.message.reply_text("Ошибка при поиске изображения.")
+        return
+
+    fetch_url = response.headers['Location']
+    headers = {'User-Agent': 'Mozilla/5.0'}
+    result = requests.get(fetch_url, headers=headers)
+    soup = BeautifulSoup(result.text, 'html.parser')
+
+    text = soup.get_text()
+    jan_code = None
+    import re
+    match = re.search(r'4\d{12}', text)
+    if match:
+        jan_code = match.group()
+
+    if jan_code:
+        await update.message.reply_text(f"Найден JAN-код: {jan_code}")
+    else:
+        await update.message.reply_text("JAN-код не найден.")
 
 app = ApplicationBuilder().token(BOT_TOKEN).build()
 app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
