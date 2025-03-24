@@ -7,7 +7,7 @@ API_URL = "https://api.ocr.space/parse/image"
 
 logging.basicConfig(level=logging.INFO)
 
-BOT_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
+BOT_TOKEN = "7587391633:AAHyIMZ5VKOTQBfUjyENBgQ99xX7mQf94bY"
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Фото получено! Распознаю текст...")
