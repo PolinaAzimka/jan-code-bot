@@ -1,6 +1,9 @@
 tesseract-ocr
-tesseract-ocr-jpn
 tesseract-ocr-eng
+tesseract-ocr-jpn
 libtesseract-dev
-libleptonica-dev
+libtesseract4
 libpng-dev
+libjpeg-dev
+libjpeg8-dev
+libjpeg-turbo8-dev
