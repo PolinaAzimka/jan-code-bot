@@ -11,7 +11,6 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-# Функция обработки фото
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     photo = update.message.photo[-1]
     file = await photo.get_file()
@@ -31,19 +30,14 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         await update.message.reply_text(f"Ошибка распознавания текста: {e}")
 
-# Старт бота с удалением старых сессий
-async def start_bot():
+async def main():
     TOKEN = os.getenv("BOT_TOKEN")
-    app = ApplicationBuilder().token(TOKEN).build()
+    application = ApplicationBuilder().token(TOKEN).build()
 
-    # Удаляем старые подключения
-    await app.bot.delete_webhook(drop_pending_updates=True)
+    await application.bot.delete_webhook(drop_pending_updates=True)
+    application.add_handler(MessageHandler(filters.PHOTO, handle_photo))
 
-    app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
-    await app.run_polling()
-
-def main():
-    asyncio.run(start_bot())
+    await application.run_polling()
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
