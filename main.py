@@ -22,7 +22,6 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         text = pytesseract.image_to_string(Image.open(photo_path), lang='jpn')
         await update.message.reply_text(f"Распознанный текст: {text}")
-{text}")
     except Exception as e:
         await update.message.reply_text(f"Ошибка распознавания текста: {e}")
 
