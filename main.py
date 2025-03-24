@@ -4,10 +4,9 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, filters, ContextTypes
 
 API_URL = "https://api.ocr.space/parse/image"
+BOT_TOKEN = "7587391633:AAHyIMZ5VKOTQBfUjyENBgQ99xX7mQf94bY"
 
 logging.basicConfig(level=logging.INFO)
-
-BOT_TOKEN = "7587391633:AAHyIMZ5VKOTQBfUjyENBgQ99xX7mQf94bY"
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Фото получено! Распознаю текст...")
@@ -17,19 +16,27 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     response = requests.post(
         API_URL,
-        files={"filename": photo_bytes},
+        files={"filename": ("image.jpg", photo_bytes)},
         data={"language": "jpn", "isOverlayRequired": False},
     )
 
     try:
         result = response.json()
-        parsed_text = result["ParsedResults"][0]["ParsedText"]
-        if parsed_text.strip():
-            await update.message.reply_text(f"Распознанный текст:\n{parsed_text}")
+        if result.get("IsErroredOnProcessing"):
+            await update.message.reply_text("Ошибка OCR-сервиса: не удалось обработать изображение.")
+            return
+
+        parsed_results = result.get("ParsedResults")
+        if parsed_results and isinstance(parsed_results, list):
+            parsed_text = parsed_results[0].get("ParsedText", "")
+            if parsed_text.strip():
+                await update.message.reply_text(f"Распознанный текст:\n{parsed_text}")
+            else:
+                await update.message.reply_text("Не удалось распознать текст.")
         else:
-            await update.message.reply_text("Не удалось распознать текст.")
+            await update.message.reply_text("Не получен результат от OCR-сервиса.")
     except Exception as e:
-        await update.message.reply_text(f"Ошибка распознавания: {str(e)}")
+        await update.message.reply_text(f"Ошибка при обработке: {str(e)}")
 
 app = ApplicationBuilder().token(BOT_TOKEN).build()
 app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
