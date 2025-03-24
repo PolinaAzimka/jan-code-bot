@@ -26,7 +26,7 @@ async def photo_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     custom_oem_psm_config = r'--oem 3 --psm 6'
     text = pytesseract.image_to_string(img, lang='eng+jpn', config=custom_oem_psm_config)
     
-    await update.message.reply_text(f'Распознанный текст:
+    await update.message.reply_text(f"Распознанный текст: {extracted_text}")
 {text}')
 
 if __name__ == '__main__':
