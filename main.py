@@ -21,13 +21,14 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     try:
-        result = response.json()
-        if result.get("IsErroredOnProcessing"):
-            await update.message.reply_text("Ошибка OCR-сервиса: не удалось обработать изображение.")
+        if "application/json" in response.headers.get("Content-Type", ""):
+            result = response.json()
+        else:
+            await update.message.reply_text("OCR-сервис вернул некорректный формат данных.")
             return
 
         parsed_results = result.get("ParsedResults")
-        if parsed_results and isinstance(parsed_results, list):
+        if isinstance(parsed_results, list) and parsed_results:
             parsed_text = parsed_results[0].get("ParsedText", "")
             if parsed_text.strip():
                 await update.message.reply_text(f"Распознанный текст:\n{parsed_text}")
@@ -43,3 +44,4 @@ app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
 
 if __name__ == "__main__":
     app.run_polling()
+
