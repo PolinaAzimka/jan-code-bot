@@ -1,4 +1,4 @@
 tesseract-ocr
 tesseract-ocr-jpn
-tesseract-ocr-osd
-tesseract-ocr-eng
+libtesseract-dev
+libpng12-0
