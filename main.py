@@ -31,8 +31,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if parsed_results:
             parsed_text = parsed_results[0].get("ParsedText", "").strip()
             if parsed_text:
-                await update.message.reply_text(f"Распознанный текст:
-{parsed_text}")
+                await update.message.reply_text(f"Распознанный текст:\n{parsed_text}")
             else:
                 await update.message.reply_text("Не удалось распознать текст.")
         else:
