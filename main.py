@@ -4,9 +4,11 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, filters, ContextTypes
 
 API_URL = "https://api.ocr.space/parse/image"
-BOT_TOKEN = "7587391633:AAHyIMZ5VKOTQBfUjyENBgQ99xX7mQf94bY"
+API_KEY = "K83263040588957"  # 🔑 Твой ключ
 
 logging.basicConfig(level=logging.INFO)
+
+BOT_TOKEN = "7587391633:AAHyIMZ5VKOTQBFuJjyENBg099xX7mQf94bY"
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Фото получено! Распознаю текст...")
@@ -18,24 +20,20 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         API_URL,
         files={"filename": ("image.jpg", photo_bytes)},
         data={"language": "jpn", "isOverlayRequired": False},
+        headers={"apikey": API_KEY},  # 🔑 Используем API-ключ
     )
 
     try:
-        if "application/json" in response.headers.get("Content-Type", ""):
-            result = response.json()
-        else:
-            await update.message.reply_text("OCR-сервис вернул некорректный формат данных.")
-            return
-
+        result = response.json()
         parsed_results = result.get("ParsedResults")
-        if isinstance(parsed_results, list) and parsed_results:
+        if parsed_results:
             parsed_text = parsed_results[0].get("ParsedText", "")
             if parsed_text.strip():
                 await update.message.reply_text(f"Распознанный текст:\n{parsed_text}")
             else:
                 await update.message.reply_text("Не удалось распознать текст.")
         else:
-            await update.message.reply_text("Не получен результат от OCR-сервиса.")
+            await update.message.reply_text("Ошибка: нет результатов распознавания.")
     except Exception as e:
         await update.message.reply_text(f"Ошибка при обработке: {str(e)}")
 
@@ -44,4 +42,3 @@ app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
 
 if __name__ == "__main__":
     app.run_polling()
-
