@@ -1,24 +1,25 @@
+# Используем официальный образ Python
 FROM python:3.11-slim
 
-# Установка системных пакетов
+# Устанавливаем необходимые системные пакеты
 RUN apt-get update && apt-get install -y \
     tesseract-ocr \
+    tesseract-ocr-eng \
     tesseract-ocr-jpn \
     libtesseract-dev \
-    libgl1-mesa-glx \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Установка рабочей директории
+# Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Установка зависимостей Python
-COPY requirements.txt .
+# Копируем файлы проекта в контейнер
+COPY . /app
+
+# Устанавливаем зависимости Python
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-# Копирование исходного кода бота
-COPY . /app
-
-# Запуск бота
+# Запускаем приложение
 CMD ["python", "main.py"]
+
