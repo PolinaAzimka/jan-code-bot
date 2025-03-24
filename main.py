@@ -1,36 +1,30 @@
 import os
 import logging
-import pytesseract
-from PIL import Image
 from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, filters, ContextTypes
+import pytesseract
+from PIL import Image
+import requests
+from io import BytesIO
 
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
+BOT_TOKEN = os.environ.get('BOT_TOKEN')
 
-async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    photo = update.message.photo[-1]
-    file = await photo.get_file()
-    file_path = f"photo_{update.message.message_id}.jpg"
-    await file.download_to_drive(file_path)
-    await update.message.reply_text("Фото получено! Распознаю текст...")
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-    try:
-        img = Image.open(file_path)
-        text = pytesseract.image_to_string(img, lang='eng+jpn')
+async def start_bot(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.message.photo:
+        await update.message.reply_text('Фото получено! Распознаю текст...')
+        file = await context.bot.get_file(update.message.photo[-1].file_id)
+        photo_bytes = BytesIO(requests.get(file.file_path).content)
 
-        if text.strip():
-            await update.message.reply_text(f"Распознанный текст:\n{text.strip()}")
-        else:
-            await update.message.reply_text("Текст не распознан. Буду искать по изображению...")
-
-    except Exception as e:
-        await update.message.reply_text(f"Ошибка распознавания текста: {e}")
+        try:
+            img = Image.open(photo_bytes)
+            text = pytesseract.image_to_string(img, lang='eng+jpn')
+            await update.message.reply_text(f'Распознанный текст:\n{text}')
+        except Exception as e:
+            await update.message.reply_text(f'Ошибка распознавания текста: {str(e)}')
 
 if __name__ == '__main__':
-    TOKEN = os.getenv("BOT_TOKEN")
-    app = ApplicationBuilder().token(TOKEN).build()
-    app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
+    app = ApplicationBuilder().token(BOT_TOKEN).build()
+    app.add_handler(MessageHandler(filters.PHOTO, start_bot))
     app.run_polling()
