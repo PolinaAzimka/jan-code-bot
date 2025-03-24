@@ -1,17 +1,17 @@
-
 import os
 import logging
 import pytesseract
 from PIL import Image
 from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, filters, ContextTypes
+import asyncio
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 
-# Обработка фото
+# Функция обработки фото
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     photo = update.message.photo[-1]
     file = await photo.get_file()
@@ -20,7 +20,6 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Фото получено! Распознаю текст...")
 
     try:
-        # Открываем изображение и распознаём текст
         img = Image.open(file_path)
         text = pytesseract.image_to_string(img, lang='eng+jpn')
 
@@ -32,16 +31,19 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         await update.message.reply_text(f"Ошибка распознавания текста: {e}")
 
-    finally:
-        if os.path.exists(file_path):
-            os.remove(file_path)
-
-# Запуск бота
-def main():
+# Старт бота с удалением старых сессий
+async def start_bot():
     TOKEN = os.getenv("BOT_TOKEN")
     app = ApplicationBuilder().token(TOKEN).build()
+
+    # Удаляем старые подключения
+    await app.bot.delete_webhook(drop_pending_updates=True)
+
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
-    app.run_polling()
+    await app.run_polling()
+
+def main():
+    asyncio.run(start_bot())
 
 if __name__ == '__main__':
     main()
