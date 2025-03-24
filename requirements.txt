@@ -1,3 +1,5 @@
+pytesseract
+Pillow
+requests
+httpx
 python-telegram-bot==20.3
-pytesseract==0.3.10
-Pillow==9.5.0
