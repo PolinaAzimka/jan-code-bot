@@ -5,7 +5,7 @@ from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filte
 from googlesearch import search
 
 logging.basicConfig(level=logging.INFO)
-BOT_TOKEN = "7587391633:AAHyIMZ5VKOTQBFuJjyENBg099xX7mQf94bY"
+BOT_TOKEN = "7587391633:AAHyIMZ5VKOTQBfUjyENBgQ99xX7mQf94bY"
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.message.text.strip()
